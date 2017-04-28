@@ -94,6 +94,7 @@ def findframe(page):
 			continue
 		
 		return(row)
+		
 def FIFO(page):
 
 	smallest = min([l[1] for l in frame])
@@ -117,27 +118,27 @@ def framecheck(page):
 			frame.append([page, time, time])
 		else:
 			if(answer == "f"):
-				print("used fifo")
-
+				
 				FIFO(page)
 			else:
 				LRU(page)
-				print("used lru")
+			
 		return False
 	else:
 		temp = findframe(page)
 		frame[temp][2] = time
 		return True
 
+if __name__ == '__main__':
 
-readinputfile()
-framesize = int(input("--> Indicate frame size: "))
-quantum = int(input("--> Indicate time quantum: "))
-multidegree = int(input("--> Indicate degree of multiprogramming: "))
-answer = input("--> Indicate FIFO or LRU (f/l): ")
+	readinputfile()
+	framesize = int(input("--> Indicate frame size: "))
+	quantum = int(input("--> Indicate time quantum: "))
+	multidegree = int(input("--> Indicate degree of multiprogramming: "))
+	answer = input("--> Indicate FIFO or LRU (f/l): ")
 
-while(len(readyqueue) > 0):
-	cpu()
+	while(len(readyqueue) > 0):
+		cpu()
 
-print("--> Batch Finished at time:", time, ", Page Faults:", pagefaults, ", Page Fault Rate:",(pagefaults/pagereads)*100,"%")
+	print("--> Batch Finished at time:", time, ", Page Faults:", pagefaults, ", Page Fault Rate:",(pagefaults/pagereads)*100,"%")
 
