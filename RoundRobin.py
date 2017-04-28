@@ -18,22 +18,30 @@ def readinputfile():
 			break
     
 		identifier = job[0]
+		numberofpages = job[1]
    
 
 		if identifier.isalpha():
     		
-			waiting.append([identifier, []])
+			waiting.append([identifier, [],[]])
 			currenthread = len(readyqueue)-1
         	
 		else:
 			waiting[currenthread][1].append([int(job[0]), int(job[1])])
+			waiting[currenthread][2].append(time)
+			waiting[currenthread][2].append(0)
+			waiting[currenthread][2].append(0)
+			waiting[currenthread][2].append(0)
+			waiting[currenthread][2].append(numberofpages)
               
 	numberofjobs = len(waiting)
 	print(waiting)
 	for i in range(multidegree):
 		if(len(waiting) == 0):
 			break
-		readyqueue.append(waiting.pop(0))
+		toadd = waiting.pop(0)
+		toadd[2][0] = time
+		readyqueue.append(toadd)
 	
 def cpu():
 	
@@ -44,10 +52,14 @@ def cpu():
 	
 		processpage = processing[1][0]
 		if(processpage[0] > 0):
-			
+			processing[2][2]+=1
 			if(framecheck(processpage[0]) == False):
 				time = time + 7
 				print("Page fault for page", processpage[0], "at time", time)
+				processing[2][1] += 1
+			else:
+				processing[2][2] += 1
+
 		print("Processing",processing[0], " task:", processpage[0], "at time", time)
 		time = time + 1
 		processpage[1] = processpage[1] -1
@@ -56,13 +68,24 @@ def cpu():
 		
 		if(processpage[0] == -3):
 
-			print(processing[0], "completed at time", time)
+			print(processing[0], "completed at time", time, ", Process start time:", processing[2][0], ", Elapsed time:", time - processing[2][0],", Cpu time:", processing[2][2], ", Pages used:", processing[2][3], ", Number of page faults:", processing[2][1], ", Page Fault Rate:", (processing[2][1]/processing[2][2])*100,"%")
 			if(len(waiting) > 0):
-				readyqueue.append(waiting.pop(0))
+				toadd = waiting.pop(0)
+				toadd[2][0] = time
+				readyqueue.append(toadd)
+
+			break
+		if(processpage[0] == -4):
+
+			print(processing[0], "error at time", time, ", Process start time:", processing[2][0], ", Elapsed time:", time - processing[2][0],", Cpu time:", processing[2][2], ", Pages used:", processing[2][3], ", Number of page faults:", processing[2][1], ", Page Fault Rate:", (processing[2][1]/processing[2][2])*100,"%")
+			if(len(waiting) > 0):
+				toadd = waiting.pop(0)
+				toadd[2][0] = time
+				readyqueue.append(toadd)
 
 			break
 
-	if(processpage[0] != -3):
+	if(processpage[0] != -3 and processpage[0] != -4):
 
 		readyqueue.append(processing)
 
