@@ -1,12 +1,7 @@
 inputf = open("vminput.txt", 'r')
-readyqueue = []
-waiting = []
-frame = []
-framesize = 3
-multidegree = 2
-quantum = 2
-time = 0
-pagefaults = 0
+readyqueue, waiting, frame = ([], [], [])
+framesize, multidegree, quantum = (1, 3, 200)
+time, pagefaults, pagereads = (0, 0, 0)
 
 def readinputfile():
 	
@@ -20,7 +15,6 @@ def readinputfile():
 		identifier = job[0]
 		numberofpages = job[1]
    
-
 		if identifier.isalpha():
     		
 			waiting.append([identifier, [],[]])
@@ -35,7 +29,7 @@ def readinputfile():
 			waiting[currenthread][2].append(numberofpages)
               
 	numberofjobs = len(waiting)
-	print(waiting)
+	
 	for i in range(multidegree):
 		if(len(waiting) == 0):
 			break
@@ -47,28 +41,29 @@ def cpu():
 	
 	processing = readyqueue.pop(0)
 	global time
+	global pagereads
 
 	for tick in range(0,quantum):
 	
 		processpage = processing[1][0]
 		if(processpage[0] > 0):
+			pagereads +=1
 			processing[2][2]+=1
 			if(framecheck(processpage[0]) == False):
-				time = time + 7
-				print("Page fault for page", processpage[0], "at time", time)
+				time += 7
+				#print("Page fault for page", processpage[0], "at time", time)
 				processing[2][1] += 1
-			else:
-				processing[2][2] += 1
+			
 
-		print("Processing",processing[0], " task:", processpage[0], "at time", time)
-		time = time + 1
-		processpage[1] = processpage[1] -1
+		time += 1
+		processpage[1] -= 1
 		if(processpage[1] == 0):
 			processing[1].pop(0)
 		
 		if(processpage[0] == -3):
 
-			print(processing[0], "completed at time", time, ", Process start time:", processing[2][0], ", Elapsed time:", time - processing[2][0],", Cpu time:", processing[2][2], ", Pages used:", processing[2][3], ", Number of page faults:", processing[2][1], ", Page Fault Rate:", (processing[2][1]/processing[2][2])*100,"%")
+			print("--> Process:",processing[0], "completed at time", time, ", Process start time:", processing[2][0], ", Elapsed time:", time - processing[2][0],", Cpu time:", processing[2][2], ", Pages used:", processing[2][4], ", Number of page faults:", processing[2][1], ", Page Fault Rate:", (processing[2][1]/processing[2][2])*100,"%")
+			print("--------------------------------------------------------")
 			if(len(waiting) > 0):
 				toadd = waiting.pop(0)
 				toadd[2][0] = time
@@ -77,7 +72,8 @@ def cpu():
 			break
 		if(processpage[0] == -4):
 
-			print(processing[0], "error at time", time, ", Process start time:", processing[2][0], ", Elapsed time:", time - processing[2][0],", Cpu time:", processing[2][2], ", Pages used:", processing[2][3], ", Number of page faults:", processing[2][1], ", Page Fault Rate:", (processing[2][1]/processing[2][2])*100,"%")
+			print("--> Process:",processing[0], "error at time", time, ", Process start time:", processing[2][0], ", Elapsed time:", time - processing[2][0],", Cpu time:", processing[2][2], ", Pages used:", processing[2][4], ", Number of page faults:", processing[2][1], ", Page Fault Rate:", (processing[2][1]/processing[2][2])*100,"%")
+			print("--------------------------------------------------------")
 			if(len(waiting) > 0):
 				toadd = waiting.pop(0)
 				toadd[2][0] = time
@@ -120,7 +116,13 @@ def framecheck(page):
 		if(len(frame) < framesize):
 			frame.append([page, time, time])
 		else:
-			LRU(page)
+			if(answer == "f"):
+				print("used fifo")
+
+				FIFO(page)
+			else:
+				LRU(page)
+				print("used lru")
 		return False
 	else:
 		temp = findframe(page)
@@ -129,9 +131,13 @@ def framecheck(page):
 
 
 readinputfile()
+framesize = int(input("--> Indicate frame size: "))
+quantum = int(input("--> Indicate time quantum: "))
+multidegree = int(input("--> Indicate degree of multiprogramming: "))
+answer = input("--> Indicate FIFO or LRU (f/l): ")
 
 while(len(readyqueue) > 0):
 	cpu()
 
-print("Finished at time:", time, ", Page Faults:", pagefaults)
+print("--> Batch Finished at time:", time, ", Page Faults:", pagefaults, ", Page Fault Rate:",(pagefaults/pagereads)*100,"%")
 
